@@ -97,7 +97,7 @@ def opt_1():
     match nmap_impt:
         case "1":
             clear()
-            nmap.scan(ip_add.rhost)
+            nmap.PortScanner.command_line(nmap {0}.format(ip_add.rhost))
         case "2":
             clear()
             nmap.PortScanner.command_line("nmap {0} -A".format(ip_add.rhost))
