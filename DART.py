@@ -204,7 +204,7 @@ def opt_7():
         
         cmdline = input("\nDART> ")
         chk = os.system(cmdline)
-        if chk == "b":
+        if cmdline == "b":
             run = False
 
 
